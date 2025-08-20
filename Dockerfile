@@ -1,16 +1,14 @@
-# Dockerfile for Cloud Run
 FROM python:3.11-slim
 
-# Security + smaller image
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
+# Set work directory
 WORKDIR /app
 
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy all code
 COPY . .
 
-# Cloud Run injects $PORT; our app must bind to it
+# Run app
 CMD ["python", "main.py"]
