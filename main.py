@@ -1,29 +1,34 @@
-import os
+
 from flask import Flask, request
 import requests
+import os
 
 app = Flask(__name__)
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+TOKEN = os.getenv("TOKEN")  # make sure TOKEN is set in your environment
+URL = f"https://api.telegram.org/bot{TOKEN}"
 
-@app.route("/")
-def home():
+# Health check route
+@app.route('/', methods=['GET'])
+def index():
     return "Ghostmind is running on Cloud Run!"
 
-@app.route(f"/webhook/{BOT_TOKEN}", methods=["POST"])
+# Webhook route
+@app.route('/webhook', methods=['POST'])
 def webhook():
-    if request.method == "POST":
-        data = request.get_json()
-        if data and "message" in data:
-            chat_id = data["message"]["chat"]["id"]
-            text = data["message"].get("text", "")
-            reply = f"You said: {text}"
-            requests.post(f"{BASE_URL}/sendMessage",
-                          json={"chat_id": chat_id, "text": reply})
-        return {"ok": True}
-    return {"ok": False}
+    data = request.get_json()
+    print("Incoming update:", data)  # log update to Cloud Run logs
 
-if __name__ == "__main__":
+    if "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+
+        reply = f"You said: {text}"
+        requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": reply})
+
+    return "ok", 200
+
+
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=port)
