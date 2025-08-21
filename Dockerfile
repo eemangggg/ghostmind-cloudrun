@@ -1,14 +1,7 @@
 FROM python:3.11-slim
-
-# Set work directory
 WORKDIR /app
-
-# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy all code
 COPY . .
-
-# Run app
-CMD ["python", "main.py"]
+ENV PYTHONUNBUFFERED=1
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
